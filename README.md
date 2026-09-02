@@ -24,17 +24,18 @@ npm run build
 3. Leave Framework Preset on **Next.js** and keep all build settings at their defaults.
 4. Deploy. No environment variables are required.
 
-## Answers and the case-file PDF
+## Answers, email and the case-file PDF
 
 - Every choice is saved in the player's browser using `localStorage`.
-- Nothing is sent to a server.
+- The intro clearly states that answers will be emailed to Polen. Pressing **I Understand · Begin** starts the evaluation under that notice.
+- On reaching the result, the complete case file is sent through Formspree endpoint `mrpgklqg`; the result screen shows sending, success, or retry states.
 - At the end, **Share Case File** opens the phone's native share sheet. She can send the complete report to Polen.
 - **Save / Print as PDF** opens a print-ready case file; choose **Save as PDF** in the print dialog.
 - Clearing browser data removes the local archive.
 
 ## Privacy
 
-The intro tells the player exactly how answers are handled. If a server endpoint is added later, update that notice before collecting anything remotely.
+Remote sharing is disclosed both before play and on the result screen. Do not remove the opening notice while Formspree submission is enabled.
 
 ## Main files
 
