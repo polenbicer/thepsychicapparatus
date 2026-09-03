@@ -24,7 +24,7 @@ const desireQuestions = [
   { prompt: "How can you tell when Polen is horny?", options: ["I look at her lips", "She suddenly becomes very quiet", "She finds an excuse to move closer", "I wait for peer-reviewed evidence"] },
   { prompt: "Where would you most want Polen’s hands?", options: ["In mine", "Around my waist", "In my hair", "This evidence must be sealed immediately"] },
   { prompt: "Choose the most accurate diagnosis.", options: ["I want to kiss Polen", "I want Polen to kiss me", "Both statements are true", "Further physical examination is required"] },
-  { prompt: "On the famous billiards night, where were you when Polen kissed you?", options: ["At the billiards table", "In the bathroom", "Outside the bar", "In front of everyone"] },
+  { prompt: "On the famous billiards night, where did you kiss Polen?", options: ["At the billiards table", "In the bathroom", "Outside the bar", "In front of everyone"] },
 ];
 
 const clamp = (v: number) => Math.max(0, Math.min(100, v));
