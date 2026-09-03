@@ -19,6 +19,13 @@ const realityCards = [
   { prompt: "Polen says: I’m not trying to distract you.", options: [{ text: "You’re failing.", spicy: false }, { text: "You’re succeeding.", spicy: true }, { text: "Send proof.", spicy: true }] },
   { prompt: "Analysis complete.", options: [{ text: "End the game", spicy: false }, { text: "See what happens", spicy: true }] },
 ];
+const desireQuestions = [
+  { prompt: "How long could you sit next to Polen without touching her?", options: ["The entire evening", "Thirty minutes", "Five minutes", "Why are we sitting?"] },
+  { prompt: "How can you tell when Polen is horny?", options: ["I look at her lips", "She suddenly becomes very quiet", "She finds an excuse to move closer", "I wait for peer-reviewed evidence"] },
+  { prompt: "Where would you most want Polen’s hands?", options: ["In mine", "Around my waist", "In my hair", "This evidence must be sealed immediately"] },
+  { prompt: "Choose the most accurate diagnosis.", options: ["I want to kiss Polen", "I want Polen to kiss me", "Both statements are true", "Further physical examination is required"] },
+  { prompt: "During the famous billiards night, where did Polen kiss you?", options: ["At the billiards table", "In the bathroom", "Outside the bar", "In front of everyone"] },
+];
 
 const clamp = (v: number) => Math.max(0, Math.min(100, v));
 function loadSavedAnswers(): Answer[] {
@@ -44,6 +51,9 @@ export default function Home() {
   const [slip, setSlip] = useState<"idle" | "switching" | "revealed">("idle");
   const [denialEscapes, setDenialEscapes] = useState(0);
   const [factCheck, setFactCheck] = useState<"idle" | "switching" | "revealed">("idle");
+  const [desireIndex, setDesireIndex] = useState(-1);
+  const [arousalAnswer, setArousalAnswer] = useState("");
+  const [desireFeedback, setDesireFeedback] = useState("");
   const [confession, setConfession] = useState("");
   const [dream, setDream] = useState("");
   const [sendState, setSendState] = useState<"idle" | "sending" | "sent" | "error">("idle");
@@ -108,6 +118,29 @@ export default function Home() {
   const submitConfession = () => { const clean = confession.trim(); if (!clean) return; addAnswer("Unsupervised Confession", "What is one thought about Polen you probably should not submit as evidence?", clean); bump({ id: 13, ego: 4 }); setScreen("dream"); };
   const submitDream = () => { const clean = dream.trim(); if (!clean) return; addAnswer("Dream Analysis", "What is the last dream you remember?", clean); bump({ id: 6, ego: 5 }); setScreen("factcheck"); };
   const chooseFact = (attempted: string) => { if (factCheck !== "idle") return; setFactCheck("switching"); setTimeout(() => { addAnswer("Objective Fact Check", "In an argument, Polen is…", `always right (attempted: ${attempted})`); bump({ id: 7, ego: 8 }); setFactCheck("revealed"); }, 850); };
+  const submitArousalAnswer = () => {
+    const clean = arousalAnswer.trim();
+    if (!clean) return;
+    addAnswer("Desire Inventory", "How can you tell when you’re horny?", clean);
+    bump({ id: 10, ego: 3 });
+    setDesireIndex(0);
+  };
+  const chooseDesire = (choice: string) => {
+    const question = desireQuestions[desireIndex];
+    addAnswer("Desire Inventory", question.prompt, choice);
+    bump({ id: 8, ego: 2 });
+    if (desireIndex === desireQuestions.length - 1) {
+      setDesireFeedback(choice === "In the bathroom"
+        ? "MEMORY VERIFIED. LOCATION: THE BATHROOM."
+        : "MEMORY CORRECTION: IT WAS IN THE BATHROOM. THE ARCHIVE REMEMBERS.");
+    } else {
+      setDesireIndex((value) => value + 1);
+    }
+  };
+  const finishDesireInventory = () => {
+    setDesireFeedback("");
+    setScreen("reality");
+  };
   const chooseReality = (choice: string, spicy: boolean) => {
     const card = realityCards[realityIndex]; addAnswer("Reality Principle", card.prompt, choice); bump(spicy ? { id: 14, ego: 2 } : { id: 3, ego: 7 });
     if (realityIndex < realityCards.length - 1) setRealityIndex((v) => v + 1); else { setSendState("sending"); setScreen("result"); }
@@ -142,9 +175,10 @@ export default function Home() {
       {screen === "yoghurt" && <div className="screen-in"><p className="chapter">07 / CULTURAL COMPATIBILITY TRIBUNAL</p><h2 className="thought">Yoghurt is…</h2><p className="microcopy">Choose carefully. The court is absolutely unbiased.</p><div className="choices"><button onClick={() => chooseYoghurt("Turkish")}>Turkish</button><button onClick={() => chooseYoghurt("Greek")}>Greek</button><button onClick={() => chooseYoghurt("I choose peace")}>I choose peace</button></div></div>}
       {screen === "confession" && <div className="screen-in confession"><p className="chapter">08 / UNSUPERVISED CONFESSION</p><h2>What is one thought about Polen you probably should not submit as evidence?</h2><textarea value={confession} onChange={(e) => setConfession(e.target.value)} maxLength={500} placeholder="The witness may type freely…"/><div className="character-count">{confession.length}/500</div><button className="primary" disabled={!confession.trim()} onClick={submitConfession}>SEAL THE EVIDENCE</button></div>}
       {screen === "dream" && <div className="screen-in confession"><p className="chapter">09 / DREAM ANALYSIS</p><h2>What is the last dream you remember?</h2><p className="microcopy">Fragments, nonsense and suspicious cameos are admissible.</p><textarea value={dream} onChange={(e) => setDream(e.target.value)} maxLength={800} placeholder="I remember…"/><div className="character-count">{dream.length}/800</div><button className="primary" disabled={!dream.trim()} onClick={submitDream}>SUBMIT TO THE UNCONSCIOUS</button></div>}
-      {screen === "factcheck" && <div className="screen-in"><p className="chapter">10 / OBJECTIVE FACT CHECK</p><h2 className="sentence">In an argument, Polen is <span>{factCheck === "revealed" ? "always right." : "_______."}</span></h2>{factCheck === "switching" && <div className="system-alert">RESULT ADJUSTED FOR FACTUAL ACCURACY</div>}{factCheck === "idle" && <div className="choices"><button onClick={() => chooseFact("sometimes wrong")}>sometimes wrong</button><button onClick={() => chooseFact("suspiciously convincing")}>suspiciously convincing</button><button onClick={() => chooseFact("usually right")}>usually right</button></div>}{factCheck === "revealed" && <><blockquote>“Independent verification was attempted<br/>and immediately abandoned.”</blockquote><button className="primary" onClick={() => setScreen("reality")}>ACCEPT THE FINDINGS</button></>}</div>}
-      {screen === "reality" && <div className="screen-in"><p className="chapter">11 / REALITY PRINCIPLE · {realityIndex + 1}/4</p><h2>{realityCards[realityIndex].prompt}</h2><div className="choices">{realityCards[realityIndex].options.map((option) => <button className={option.spicy ? "reality-spicy" : ""} key={option.text} onClick={() => chooseReality(option.text, option.spicy)}>{option.text}</button>)}</div></div>}
-      {screen === "result" && <div className="result screen-in"><p className="kicker">FINAL DIAGNOSIS</p><h1>{diagnosis.eyebrow}</h1><h2>{diagnosis.title}</h2><p className="lede">{diagnosis.copy}</p><div className="final-score"><b>{scores.id}</b><b>{scores.ego}</b><span>ID</span><span>EGO</span></div><div className="recommendation"><span>FINAL RECOMMENDATION</span>Stop analysing each other and go for a drink.</div><div className={`transmission ${sendState}`}><b>{sendState === "sending" ? "TRANSMITTING CASE FILE…" : sendState === "sent" ? "CASE FILE EMAILED TO POLEN" : sendState === "error" ? "EMAIL TRANSMISSION FAILED" : "CASE FILE QUEUED"}</b><span>Your choices and both written responses are shared with Polen.</span>{sendState === "error" && <><small className="send-error">{sendError}</small><button onClick={emailReport}>RETRY TRANSMISSION</button></>}</div><button className="primary" onClick={shareReport}>SHARE CASE FILE</button><button className="secondary" onClick={printReport}>SAVE / PRINT AS PDF</button><button className="text-button" onClick={() => { setScores({ id: 18, ego: 42 }); setMessageIndex(0); setProjectionIndex(0); setHistoryStep("sender"); setHistoryFeedback(""); setRealityIndex(0); setSlip("idle"); setDenialEscapes(0); setFactCheck("idle"); setConfession(""); setDream(""); setSendError(""); setSendState("idle"); setScreen("intro"); }}>REQUEST A SECOND OPINION</button></div>}
+      {screen === "factcheck" && <div className="screen-in"><p className="chapter">10 / OBJECTIVE FACT CHECK</p><h2 className="sentence">In an argument, Polen is <span>{factCheck === "revealed" ? "always right." : "_______."}</span></h2>{factCheck === "switching" && <div className="system-alert">RESULT ADJUSTED FOR FACTUAL ACCURACY</div>}{factCheck === "idle" && <div className="choices"><button onClick={() => chooseFact("sometimes wrong")}>sometimes wrong</button><button onClick={() => chooseFact("suspiciously convincing")}>suspiciously convincing</button><button onClick={() => chooseFact("usually right")}>usually right</button></div>}{factCheck === "revealed" && <><blockquote>“Independent verification was attempted<br/>and immediately abandoned.”</blockquote><button className="primary" onClick={() => setScreen("desire")}>ACCEPT THE FINDINGS</button></>}</div>}
+      {screen === "desire" && <div className="screen-in confession"><p className="chapter">11 / DESIRE INVENTORY · {desireIndex < 0 ? "1" : desireIndex + 2}/6</p>{desireIndex < 0 ? <><h2>How can you tell when you’re horny?</h2><p className="microcopy">Describe the diagnostic symptoms in your own words.</p><textarea value={arousalAnswer} onChange={(e) => setArousalAnswer(e.target.value)} maxLength={600} placeholder="I know because…"/><div className="character-count">{arousalAnswer.length}/600</div><button className="primary" disabled={!arousalAnswer.trim()} onClick={submitArousalAnswer}>SUBMIT CLINICAL EVIDENCE</button></> : <><h2 className="thought">{desireQuestions[desireIndex].prompt}</h2>{desireFeedback ? <><div className="system-alert">{desireFeedback}</div><button className="primary" onClick={finishDesireInventory}>CONTINUE, WITH THIS MEMORY RESTORED</button></> : <div className="choices">{desireQuestions[desireIndex].options.map((option) => <button key={option} onClick={() => chooseDesire(option)}>{option}</button>)}</div>}</>}</div>}
+      {screen === "reality" && <div className="screen-in"><p className="chapter">12 / REALITY PRINCIPLE · {realityIndex + 1}/4</p><h2>{realityCards[realityIndex].prompt}</h2><div className="choices">{realityCards[realityIndex].options.map((option) => <button className={option.spicy ? "reality-spicy" : ""} key={option.text} onClick={() => chooseReality(option.text, option.spicy)}>{option.text}</button>)}</div></div>}
+      {screen === "result" && <div className="result screen-in"><p className="kicker">FINAL DIAGNOSIS</p><h1>{diagnosis.eyebrow}</h1><h2>{diagnosis.title}</h2><p className="lede">{diagnosis.copy}</p><div className="final-score"><b>{scores.id}</b><b>{scores.ego}</b><span>ID</span><span>EGO</span></div><div className="recommendation"><span>FINAL RECOMMENDATION</span>Stop analysing each other and go for a drink.</div><div className={`transmission ${sendState}`}><b>{sendState === "sending" ? "TRANSMITTING CASE FILE…" : sendState === "sent" ? "CASE FILE EMAILED TO POLEN" : sendState === "error" ? "EMAIL TRANSMISSION FAILED" : "CASE FILE QUEUED"}</b><span>Your choices and both written responses are shared with Polen.</span>{sendState === "error" && <><small className="send-error">{sendError}</small><button onClick={emailReport}>RETRY TRANSMISSION</button></>}</div><button className="primary" onClick={shareReport}>SHARE CASE FILE</button><button className="secondary" onClick={printReport}>SAVE / PRINT AS PDF</button><button className="text-button" onClick={() => { setScores({ id: 18, ego: 42 }); setMessageIndex(0); setProjectionIndex(0); setHistoryStep("sender"); setHistoryFeedback(""); setRealityIndex(0); setSlip("idle"); setDenialEscapes(0); setFactCheck("idle"); setDesireIndex(-1); setArousalAnswer(""); setDesireFeedback(""); setConfession(""); setDream(""); setSendError(""); setSendState("idle"); setScreen("intro"); }}>REQUEST A SECOND OPINION</button></div>}
     </div><footer>THE UNCONSCIOUS IS OBSERVING · {answers.length.toString().padStart(2, "0")} RESPONSES RECORDED</footer>
   </section></main>;
 }
