@@ -2,16 +2,16 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-type Scores = { id: number; ego: number; superego: number };
+type Scores = { id: number; ego: number };
 type Answer = { section: string; prompt: string; answer: string; at: string };
 const STORAGE_KEY = "psychic-apparatus-case-file-v1";
 
 const projectionCards = [
-  { text: "This is a terrible idea. Continue.", answer: "Polen", delta: { id: 10, ego: 2, superego: 0 } },
-  { text: "I’m only playing because I want to win.", answer: "Me", delta: { id: 4, ego: 8, superego: 2 } },
-  { text: "I am only flirting for research purposes.", answer: "Me", delta: { id: 8, ego: 5, superego: 1 } },
-  { text: "Why hasn’t she texted yet?", answer: "Me", delta: { id: 9, ego: 2, superego: 0 } },
-  { text: "This tension is becoming operationally inefficient.", answer: "The phone", delta: { id: 3, ego: 5, superego: 8 } },
+  { text: "This is a terrible idea. Continue.", answer: "Polen", delta: { id: 10, ego: 2 } },
+  { text: "I’m only playing because I want to win.", answer: "Me", delta: { id: 4, ego: 8 } },
+  { text: "I am only flirting for research purposes.", answer: "Me", delta: { id: 8, ego: 5 } },
+  { text: "Why hasn’t she texted yet?", answer: "Me", delta: { id: 9, ego: 2 } },
+  { text: "This tension is becoming operationally inefficient.", answer: "Me", delta: { id: 3, ego: 8 } },
 ];
 const realityCards = [
   { prompt: "It’s late.", options: [{ text: "Go home", spicy: false }, { text: "One more drink", spicy: true }] },
@@ -34,7 +34,7 @@ function Meter({ label, value, color }: { label: string; value: number; color: s
 
 export default function Home() {
   const [screen, setScreen] = useState("intro");
-  const [scores, setScores] = useState<Scores>({ id: 18, ego: 42, superego: 56 });
+  const [scores, setScores] = useState<Scores>({ id: 18, ego: 42 });
   const [answers, setAnswers] = useState<Answer[]>(loadSavedAnswers);
   const [messageIndex, setMessageIndex] = useState(0);
   const [projectionIndex, setProjectionIndex] = useState(0);
@@ -50,11 +50,10 @@ export default function Home() {
   useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers, scores, updatedAt: new Date().toISOString() })); }, [answers, scores]);
 
   const addAnswer = (section: string, prompt: string, answer: string) => setAnswers((a) => [...a, { section, prompt, answer, at: new Date().toISOString() }]);
-  const bump = (d: Partial<Scores>) => setScores((s) => ({ id: clamp(s.id + (d.id ?? 0)), ego: clamp(s.ego + (d.ego ?? 0)), superego: clamp(s.superego + (d.superego ?? 0)) }));
+  const bump = (d: Partial<Scores>) => setScores((s) => ({ id: clamp(s.id + (d.id ?? 0)), ego: clamp(s.ego + (d.ego ?? 0)) }));
   const diagnosis = useMemo(() => {
     const winner = Object.entries(scores).sort((a, b) => b[1] - a[1])[0][0];
     if (winner === "id") return { eyebrow: "THE ID HAS WON", title: "Clinically irresistible.", copy: "Impulse control was present, briefly. Polen recommends discussing the findings over a drink." };
-    if (winner === "superego") return { eyebrow: "SUPEREGO DOMINANT", title: "Composed. Suspiciously curious.", copy: "You defeated Polen’s Id. Your prize is choosing where Polen takes you." };
     return { eyebrow: "EGO DOMINANT", title: "Functionally dangerous.", copy: "Excellent judgment. Selectively applied. Polen requests further evaluation in person." };
   }, [scores]);
 
@@ -65,41 +64,41 @@ export default function Home() {
   ];
   const choosePleasure = (answer: string) => {
     addAnswer("Pleasure Principle", `Polen: ${messages[messageIndex].text}`, answer);
-    bump(answer.includes("Depends") || answer.includes("What kind") || answer.includes("Good") || answer.includes("favourite") ? { id: 12, ego: 4, superego: -4 } : { id: 4, ego: 7, superego: 6 });
+    bump(answer.includes("Depends") || answer.includes("What kind") || answer.includes("Good") || answer.includes("favourite") ? { id: 12, ego: 4 } : { id: 4, ego: 7 });
     if (messageIndex < 2) setMessageIndex((v) => v + 1); else setScreen("denial");
   };
-  const admitDenial = () => { addAnswer("Denial Test", "I could resist Polen if I genuinely wanted to.", "False"); bump({ id: 12, ego: 6, superego: -5 }); setScreen("slip"); };
+  const admitDenial = () => { addAnswer("Denial Test", "I could resist Polen if I genuinely wanted to.", "False"); bump({ id: 12, ego: 6 }); setScreen("slip"); };
   const triggerSlip = (word: string) => {
     if (slip !== "idle") return;
-    if (word === "annoying") { setSlip("switching"); setTimeout(() => { setSlip("revealed"); addAnswer("Freudian Slip", "Polen is very ____.", "attractive (allegedly selected: annoying)"); bump({ id: 18, ego: -2, superego: -8 }); }, 900); }
-    else { addAnswer("Freudian Slip", "Polen is very ____.", word); bump(word === "distracting" ? { id: 12, ego: 3 } : { ego: 6, superego: 3 }); setSlip("revealed"); }
+    if (word === "annoying") { setSlip("switching"); setTimeout(() => { setSlip("revealed"); addAnswer("Freudian Slip", "Polen is very ____.", "attractive (allegedly selected: annoying)"); bump({ id: 18, ego: -2 }); }, 900); }
+    else { addAnswer("Freudian Slip", "Polen is very ____.", word); bump(word === "distracting" ? { id: 12, ego: 3 } : { ego: 6 }); setSlip("revealed"); }
   };
   const chooseProjection = (choice: string) => {
     const card = projectionCards[projectionIndex]; addAnswer("Projection Test", card.text, choice);
-    if (choice === card.answer) bump({ ego: 7, superego: 3 }); else bump(card.delta);
+    if (choice === card.answer) bump({ ego: 7 }); else bump(card.delta);
     if (projectionIndex < projectionCards.length - 1) setProjectionIndex((v) => v + 1); else setScreen("yoghurt");
   };
   const chooseYoghurt = (choice: string) => {
     const recorded = choice === "Greek" ? "Turkish (attempted answer: Greek)" : choice === "I choose peace" ? "Turkish, under diplomatic pressure (attempted: peace)" : choice;
-    addAnswer("Cultural Compatibility Tribunal", "Yoghurt is…", recorded); bump(choice === "Turkish" ? { ego: 10, id: 5 } : { id: 8, superego: -4 }); setScreen("confession");
+    addAnswer("Cultural Compatibility Tribunal", "Yoghurt is…", recorded); bump(choice === "Turkish" ? { ego: 10, id: 5 } : { id: 8 }); setScreen("confession");
   };
-  const submitConfession = () => { const clean = confession.trim(); if (!clean) return; addAnswer("Unsupervised Confession", "What is one thought about Polen you probably should not submit as evidence?", clean); bump({ id: 13, ego: 4, superego: -6 }); setScreen("dream"); };
-  const submitDream = () => { const clean = dream.trim(); if (!clean) return; addAnswer("Dream Analysis", "What is the last dream you remember?", clean); bump({ id: 6, ego: 5, superego: -2 }); setScreen("factcheck"); };
-  const chooseFact = (attempted: string) => { if (factCheck !== "idle") return; setFactCheck("switching"); setTimeout(() => { addAnswer("Objective Fact Check", "In an argument, Polen is…", `always right (attempted: ${attempted})`); bump({ id: 7, ego: 8, superego: -3 }); setFactCheck("revealed"); }, 850); };
+  const submitConfession = () => { const clean = confession.trim(); if (!clean) return; addAnswer("Unsupervised Confession", "What is one thought about Polen you probably should not submit as evidence?", clean); bump({ id: 13, ego: 4 }); setScreen("dream"); };
+  const submitDream = () => { const clean = dream.trim(); if (!clean) return; addAnswer("Dream Analysis", "What is the last dream you remember?", clean); bump({ id: 6, ego: 5 }); setScreen("factcheck"); };
+  const chooseFact = (attempted: string) => { if (factCheck !== "idle") return; setFactCheck("switching"); setTimeout(() => { addAnswer("Objective Fact Check", "In an argument, Polen is…", `always right (attempted: ${attempted})`); bump({ id: 7, ego: 8 }); setFactCheck("revealed"); }, 850); };
   const chooseReality = (choice: string, spicy: boolean) => {
-    const card = realityCards[realityIndex]; addAnswer("Reality Principle", card.prompt, choice); bump(spicy ? { id: 14, ego: 2, superego: -5 } : { id: 3, ego: 7, superego: 9 });
+    const card = realityCards[realityIndex]; addAnswer("Reality Principle", card.prompt, choice); bump(spicy ? { id: 14, ego: 2 } : { id: 3, ego: 7 });
     if (realityIndex < realityCards.length - 1) setRealityIndex((v) => v + 1); else { setSendState("sending"); setScreen("result"); }
   };
-  const reportText = () => `CONFIDENTIAL PSYCHOANALYTIC CASE FILE\n\n${diagnosis.eyebrow}: ${diagnosis.title}\nID ${scores.id}% · EGO ${scores.ego}% · SUPEREGO ${scores.superego}%\n\n${answers.map((a, i) => `${i + 1}. [${a.section}] ${a.prompt}\n→ ${a.answer}`).join("\n\n")}\n\nFinal recommendation: Stop analysing each other and go for a drink.`;
+  const reportText = () => `CONFIDENTIAL PSYCHOANALYTIC CASE FILE\n\n${diagnosis.eyebrow}: ${diagnosis.title}\nID ${scores.id}% · EGO ${scores.ego}%\n\n${answers.map((a, i) => `${i + 1}. [${a.section}] ${a.prompt}\n→ ${a.answer}`).join("\n\n")}\n\nFinal recommendation: Stop analysing each other and go for a drink.`;
   const shareReport = async () => { const text = reportText(); if (navigator.share) await navigator.share({ title: "Confidential Case File", text }); else await navigator.clipboard.writeText(text); };
   const emailReport = () => { setSendError(""); setSendState("sending"); };
   useEffect(() => {
     if (screen !== "result" || sendState !== "sending") return;
-    const caseFile = `CONFIDENTIAL PSYCHOANALYTIC CASE FILE\n\n${diagnosis.eyebrow}: ${diagnosis.title}\nID ${scores.id}% · EGO ${scores.ego}% · SUPEREGO ${scores.superego}%\n\n${answers.map((a, i) => `${i + 1}. [${a.section}] ${a.prompt}\n→ ${a.answer}`).join("\n\n")}\n\nFinal recommendation: Stop analysing each other and go for a drink.`;
-    const payload = new URLSearchParams({ _subject: "New Psychic Apparatus case file", played_at: new Date().toISOString(), diagnosis: `${diagnosis.eyebrow}: ${diagnosis.title}`, id_score: String(scores.id), ego_score: String(scores.ego), superego_score: String(scores.superego), confession, last_remembered_dream: dream, case_file: caseFile });
+    const caseFile = `CONFIDENTIAL PSYCHOANALYTIC CASE FILE\n\n${diagnosis.eyebrow}: ${diagnosis.title}\nID ${scores.id}% · EGO ${scores.ego}%\n\n${answers.map((a, i) => `${i + 1}. [${a.section}] ${a.prompt}\n→ ${a.answer}`).join("\n\n")}\n\nFinal recommendation: Stop analysing each other and go for a drink.`;
+    const payload = new URLSearchParams({ _subject: "New Psychic Apparatus case file", played_at: new Date().toISOString(), diagnosis: `${diagnosis.eyebrow}: ${diagnosis.title}`, id_score: String(scores.id), ego_score: String(scores.ego), confession, last_remembered_dream: dream, case_file: caseFile });
     localStorage.setItem(`${STORAGE_KEY}-pending-email`, caseFile);
     void fetch("https://formspree.io/f/mrpgklqg", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded", Accept: "application/json" }, body: payload.toString() }).then(async (response) => { if (!response.ok) { const data = await response.json().catch(() => null) as { error?: string } | null; throw new Error(data?.error || `Formspree returned ${response.status}`); } localStorage.removeItem(`${STORAGE_KEY}-pending-email`); setSendState("sent"); }).catch((error: unknown) => { setSendError(error instanceof Error ? error.message : "Network request failed"); setSendState("error"); });
-  }, [screen, sendState, answers, confession, dream, diagnosis.eyebrow, diagnosis.title, scores.id, scores.ego, scores.superego]);
+  }, [screen, sendState, answers, confession, dream, diagnosis.eyebrow, diagnosis.title, scores.id, scores.ego]);
   const printReport = () => {
     const win = window.open("", "_blank"); if (!win) return;
     const safe = reportText().replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
@@ -108,19 +107,19 @@ export default function Home() {
 
   return <main className="game-shell"><div className="noise"/><section className="phone-frame">
     <header className="topbar"><span>PSYCHIC APPARATUS™</span><span className="live-dot">UNLICENSED</span></header>
-    {screen !== "intro" && screen !== "result" && <div className="meters"><Meter label="DESIRE / ID" value={scores.id} color="#ff4f8b"/><Meter label="DENIAL / EGO" value={scores.ego} color="#e9ff65"/><Meter label="DIGNITY / SUPEREGO" value={scores.superego} color="#74dfff"/></div>}
+    {screen !== "intro" && screen !== "result" && <div className="meters"><Meter label="DESIRE / ID" value={scores.id} color="#ff4f8b"/><Meter label="DENIAL / EGO" value={scores.ego} color="#e9ff65"/></div>}
     <div className="stage">
-      {screen === "intro" && <div className="intro screen-in"><p className="kicker">CASE NO. 00–ID</p><h1>The Psychic<br/><em>Apparatus</em></h1><p className="lede">A completely unlicensed analysis of you, Polen, and her phone.</p><div className="roles"><p><b>POLEN</b><span>THE ID</span></p><p><b>YOU</b><span>THE EGO</span></p><p><b>THE PHONE</b><span>THE SUPEREGO</span></p></div><p className="privacy"><b>CASE-FILE NOTICE:</b> you're not in a neutral game </p><button className="primary" onClick={() => { setAnswers([]); setConfession(""); setDream(""); setSendState("idle"); setScreen("pleasure"); }}>I UNDERSTAND · BEGIN</button></div>}
+      {screen === "intro" && <div className="intro screen-in"><p className="kicker">CASE NO. 00–ID</p><h1>The Psychic<br/><em>Apparatus</em></h1><p className="lede">A completely unlicensed analysis of you and Polen.</p><div className="roles"><p><b>POLEN</b><span>THE ID</span></p><p><b>YOU</b><span>THE EGO</span></p></div><p className="privacy"><b>CASE-FILE NOTICE:</b> you're not in a neutral game </p><button className="primary" onClick={() => { setAnswers([]); setConfession(""); setDream(""); setSendState("idle"); setScreen("pleasure"); }}>I UNDERSTAND · BEGIN</button></div>}
       {screen === "pleasure" && <div className="screen-in"><p className="chapter">01 / THE PLEASURE PRINCIPLE</p><div className="message-card"><span>POLEN · NOW</span><p>{messages[messageIndex].text}</p></div><p className="microcopy">Respond before dignity intervenes.</p><div className="choices">{messages[messageIndex].options.map((o) => <button key={o} onClick={() => choosePleasure(o)}>{o}</button>)}</div></div>}
       {screen === "denial" && <div className="screen-in denial"><p className="chapter">02 / DENIAL TEST</p><h2>I could resist Polen if I genuinely wanted to.</h2><p className="microcopy">Select the clinically accurate answer.</p><div className="denial-zone"><button className={`escaping escape-${denialEscapes % 4}`} onPointerEnter={() => setDenialEscapes((v) => v + 1)} onPointerDown={(e) => { e.preventDefault(); setDenialEscapes((v) => v + 1); }}>TRUE</button><button className="admission" onClick={admitDenial}>FALSE</button></div><p className="temptation">{denialEscapes > 2 ? "Denial is no longer available in your region." : "The truth appears unusually stable."}</p></div>}
       {screen === "slip" && <div className="screen-in"><p className="chapter">03 / FREUDIAN SLIP</p><h2 className="sentence">Polen is very <span>{slip === "revealed" ? "attractive." : "______."}</span></h2>{slip === "switching" && <div className="system-alert">INPUT CORRECTED BY THE UNCONSCIOUS</div>}{slip === "idle" && <div className="choices slip-grid"><button onClick={() => triggerSlip("chaotic")}>chaotic</button><button className="annoying" onClick={() => triggerSlip("annoying")}>annoying</button><button onClick={() => triggerSlip("funny")}>funny</button><button onClick={() => triggerSlip("distracting")}>distracting</button></div>}{slip === "revealed" && <><blockquote>“Autocorrect has been blamed.<br/>Autocorrect denies involvement.”</blockquote><button className="primary" onClick={() => setScreen("projection")}>DENY AND CONTINUE</button></>}</div>}
-      {screen === "projection" && <div className="screen-in"><p className="chapter">04 / PROJECTION TEST · {projectionIndex + 1}/5</p><h2 className="thought">“{projectionCards[projectionIndex].text}”</h2><p className="microcopy">Whose thought is this?</p><div className="choices triple">{["Polen", "Me", "The phone"].map((c) => <button key={c} onClick={() => chooseProjection(c)}>{c}</button>)}</div></div>}
+      {screen === "projection" && <div className="screen-in"><p className="chapter">04 / PROJECTION TEST · {projectionIndex + 1}/5</p><h2 className="thought">“{projectionCards[projectionIndex].text}”</h2><p className="microcopy">Whose thought is this?</p><div className="choices triple">{["Polen", "Me"].map((c) => <button key={c} onClick={() => chooseProjection(c)}>{c}</button>)}</div></div>}
       {screen === "yoghurt" && <div className="screen-in"><p className="chapter">05 / CULTURAL COMPATIBILITY TRIBUNAL</p><h2 className="thought">Yoghurt is…</h2><p className="microcopy">Choose carefully. The court is absolutely unbiased.</p><div className="choices"><button onClick={() => chooseYoghurt("Turkish")}>Turkish</button><button onClick={() => chooseYoghurt("Greek")}>Greek</button><button onClick={() => chooseYoghurt("I choose peace")}>I choose peace</button></div></div>}
       {screen === "confession" && <div className="screen-in confession"><p className="chapter">06 / UNSUPERVISED CONFESSION</p><h2>What is one thought about Polen you probably should not submit as evidence?</h2><textarea value={confession} onChange={(e) => setConfession(e.target.value)} maxLength={500} placeholder="The witness may type freely…"/><div className="character-count">{confession.length}/500</div><button className="primary" disabled={!confession.trim()} onClick={submitConfession}>SEAL THE EVIDENCE</button></div>}
       {screen === "dream" && <div className="screen-in confession"><p className="chapter">07 / DREAM ANALYSIS</p><h2>What is the last dream you remember?</h2><p className="microcopy">Fragments, nonsense and suspicious cameos are admissible.</p><textarea value={dream} onChange={(e) => setDream(e.target.value)} maxLength={800} placeholder="I remember…"/><div className="character-count">{dream.length}/800</div><button className="primary" disabled={!dream.trim()} onClick={submitDream}>SUBMIT TO THE UNCONSCIOUS</button></div>}
       {screen === "factcheck" && <div className="screen-in"><p className="chapter">08 / OBJECTIVE FACT CHECK</p><h2 className="sentence">In an argument, Polen is <span>{factCheck === "revealed" ? "always right." : "_______."}</span></h2>{factCheck === "switching" && <div className="system-alert">RESULT ADJUSTED FOR FACTUAL ACCURACY</div>}{factCheck === "idle" && <div className="choices"><button onClick={() => chooseFact("sometimes wrong")}>sometimes wrong</button><button onClick={() => chooseFact("suspiciously convincing")}>suspiciously convincing</button><button onClick={() => chooseFact("usually right")}>usually right</button></div>}{factCheck === "revealed" && <><blockquote>“Independent verification was attempted<br/>and immediately abandoned.”</blockquote><button className="primary" onClick={() => setScreen("reality")}>ACCEPT THE FINDINGS</button></>}</div>}
       {screen === "reality" && <div className="screen-in"><p className="chapter">09 / REALITY PRINCIPLE · {realityIndex + 1}/4</p><h2>{realityCards[realityIndex].prompt}</h2><div className="choices">{realityCards[realityIndex].options.map((option) => <button className={option.spicy ? "reality-spicy" : ""} key={option.text} onClick={() => chooseReality(option.text, option.spicy)}>{option.text}</button>)}</div></div>}
-      {screen === "result" && <div className="result screen-in"><p className="kicker">FINAL DIAGNOSIS</p><h1>{diagnosis.eyebrow}</h1><h2>{diagnosis.title}</h2><p className="lede">{diagnosis.copy}</p><div className="final-score"><b>{scores.id}</b><b>{scores.ego}</b><b>{scores.superego}</b><span>ID</span><span>EGO</span><span>SUPEREGO</span></div><div className="recommendation"><span>FINAL RECOMMENDATION</span>Stop analysing each other and go for a drink.</div><div className={`transmission ${sendState}`}><b>{sendState === "sending" ? "TRANSMITTING CASE FILE…" : sendState === "sent" ? "CASE FILE EMAILED TO POLEN" : sendState === "error" ? "EMAIL TRANSMISSION FAILED" : "CASE FILE QUEUED"}</b><span>Your choices and both written responses are shared with Polen.</span>{sendState === "error" && <><small className="send-error">{sendError}</small><button onClick={emailReport}>RETRY TRANSMISSION</button></>}</div><button className="primary" onClick={shareReport}>SHARE CASE FILE</button><button className="secondary" onClick={printReport}>SAVE / PRINT AS PDF</button><button className="text-button" onClick={() => { setScores({ id: 18, ego: 42, superego: 56 }); setMessageIndex(0); setProjectionIndex(0); setRealityIndex(0); setSlip("idle"); setDenialEscapes(0); setFactCheck("idle"); setConfession(""); setDream(""); setSendError(""); setSendState("idle"); setScreen("intro"); }}>REQUEST A SECOND OPINION</button></div>}
-    </div><footer>THE PHONE IS OBSERVING · {answers.length.toString().padStart(2, "0")} RESPONSES RECORDED</footer>
+      {screen === "result" && <div className="result screen-in"><p className="kicker">FINAL DIAGNOSIS</p><h1>{diagnosis.eyebrow}</h1><h2>{diagnosis.title}</h2><p className="lede">{diagnosis.copy}</p><div className="final-score"><b>{scores.id}</b><b>{scores.ego}</b><span>ID</span><span>EGO</span></div><div className="recommendation"><span>FINAL RECOMMENDATION</span>Stop analysing each other and go for a drink.</div><div className={`transmission ${sendState}`}><b>{sendState === "sending" ? "TRANSMITTING CASE FILE…" : sendState === "sent" ? "CASE FILE EMAILED TO POLEN" : sendState === "error" ? "EMAIL TRANSMISSION FAILED" : "CASE FILE QUEUED"}</b><span>Your choices and both written responses are shared with Polen.</span>{sendState === "error" && <><small className="send-error">{sendError}</small><button onClick={emailReport}>RETRY TRANSMISSION</button></>}</div><button className="primary" onClick={shareReport}>SHARE CASE FILE</button><button className="secondary" onClick={printReport}>SAVE / PRINT AS PDF</button><button className="text-button" onClick={() => { setScores({ id: 18, ego: 42 }); setMessageIndex(0); setProjectionIndex(0); setRealityIndex(0); setSlip("idle"); setDenialEscapes(0); setFactCheck("idle"); setConfession(""); setDream(""); setSendError(""); setSendState("idle"); setScreen("intro"); }}>REQUEST A SECOND OPINION</button></div>}
+    </div><footer>THE UNCONSCIOUS IS OBSERVING · {answers.length.toString().padStart(2, "0")} RESPONSES RECORDED</footer>
   </section></main>;
 }
